@@ -1,38 +1,74 @@
 package org.security.system.modelassembler;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import java.util.List;
+
 import org.security.system.controller.UserController;
 import org.security.system.dto.UserDto;
-import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
-import org.springframework.stereotype.Component;
+import org.springframework.hateoas.CollectionModel;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+public class UserModelAssembler {
 
-@Component
-public class UserModelAssembler extends RepresentationModelAssemblerSupport<UserDto, UserModel> {
-
-	public UserModelAssembler() {
-        super(UserController.class, UserModel.class);
+	public static Builder builder(UserDto dto) {
+        return new Builder(dto);
     }
 
-	@Override
-	public UserModel toModel(UserDto dto) {
-		UserModel model = new UserModel(dto);
-		// Link chính (self)
-        model.add(linkTo(methodOn(UserController.class).getUser(dto.id)).withSelfRel());
-
-        // Link update
-        model.add(linkTo(methodOn(UserController.class).updateUser(dto.id, null)).withRel("update"));
-
-        // Link delete hard
-        model.add(linkTo(methodOn(UserController.class).deleteHard(dto.id)).withRel("delete_hard"));
-        
-        // Link delete soft
-        model.add(linkTo(methodOn(UserController.class).deleteSoft(dto.id)).withRel("delete_soft"));
-
-        // Link lấy tất cả user
-        model.add(linkTo(methodOn(UserController.class).getAllUsers()).withRel("users"));
+	public static class Builder {
+		private final UserModel model;
 		
-        return model;
-	}
+		public Builder(UserDto dto) {
+            this.model = new UserModel(dto);
+        }
+		public Builder withSelfLink() {
+            model.add(linkTo(methodOn(UserController.class).getUser(model.id)).withSelfRel());
+            return this;
+        }
 
+        public Builder withUpdateLink() {
+            model.add(linkTo(methodOn(UserController.class).updateUser(model.id, null)).withRel("update"));
+            return this;
+        }
+
+        public Builder withDeleteSoftLink() {
+            model.add(linkTo(methodOn(UserController.class).deleteSoft(model.id)).withRel("delete_soft"));
+            return this;
+        }
+        public Builder withDeleteHardLink() {
+            model.add(linkTo(methodOn(UserController.class).deleteHard(model.id)).withRel("delete_hard"));
+            return this;
+        }
+
+        public Builder withGetAllUsersLink() {
+            model.add(linkTo(methodOn(UserController.class).getAllUsers()).withRel("users"));
+            return this;
+        }
+        
+        public UserModel build() {
+            return model;
+        }
+	}
+	public static CollectionModel<UserModel> buildCollection(List<UserDto> users) {
+		List<UserModel> models = users.stream()
+	            .map(user -> UserModelAssembler.builder(user)
+	                .withSelfLink()
+	                .withUpdateLink()
+	                .withDeleteSoftLink()
+	                .withDeleteHardLink()
+	                .build()
+	            )
+	            .toList();
+		CollectionModel<UserModel> collectionModel = CollectionModel.of(models);
+		collectionModel.add(linkTo(methodOn(UserController.class).getAllUsers()).withSelfRel());
+		return collectionModel;
+	}
+	public static UserModel buildModel(UserDto user) {
+		return UserModelAssembler.builder(user)
+				.withSelfLink()
+                .withUpdateLink()
+                .withDeleteSoftLink()
+                .withDeleteHardLink()
+				.build();
+	}
 }
