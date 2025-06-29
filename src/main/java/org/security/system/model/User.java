@@ -3,8 +3,12 @@ package org.security.system.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import org.security.system.service.SoftDeletable;
+import org.security.system.service.impl.SoftDeleteListener;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,7 +23,8 @@ import lombok.Setter;
 @Entity
 @Table(name = "users") // Tránh dùng tên 'user' vì là keyword SQL
 @Getter @Setter
-public class User {
+@EntityListeners({SoftDeleteListener.class})
+public class User extends VersionedEntity implements SoftDeletable {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,12 +63,6 @@ public class User {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
     
     // Bạn có thể mở rộng với các trường như: address, dateOfBirth, 2FA secret, MFA enabled...
     // Phân quyền (Role-based)

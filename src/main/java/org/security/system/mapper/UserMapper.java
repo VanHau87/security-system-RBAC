@@ -3,22 +3,34 @@ package org.security.system.mapper;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 import org.security.system.dto.UserDto;
 import org.security.system.model.Role;
 import org.security.system.model.User;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 	UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 	
 	@Mapping(source = "roles", target = "roles", qualifiedByName = "mapRoleToString")
 	UserDto toDTO(User user);
+	
+	@Mapping(source = "roles", target = "roles", qualifiedByName = "mapStringToRole")
+	@BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+	
+	void updateFromDto(UserDto source, @MappingTarget User target);
+	
 	@Mapping(source = "roles", target = "roles", qualifiedByName = "mapStringToRole")
 	User toEntity(UserDto dto);
+	
+	
 	
 	@Named("mapRoleToString")
     default Set<String> mapRoleToString(Set<Role> roles) {
