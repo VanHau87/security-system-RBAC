@@ -1,7 +1,6 @@
 package org.security.system.service.impl;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.security.system.dto.UserDto;
 import org.security.system.mapper.UserMapper;
@@ -36,8 +35,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<UserDto> getAllUsers() {
-		return userRepository.findAll()
-                .stream().map(userMapper::toDTO).collect(Collectors.toList());
+		//userRepository.findAll().stream().map(userMapper::toDTO).collect(Collectors.toList());
+		return userMapper.toDTOs(userRepository.findAll());
 	}
 
 	@Override
@@ -53,8 +52,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserDto updateUser(Long id, UserDto userDto) {
-		User user = userRepository.findById(id)
+	public UserDto updateUser(UserDto userDto) {
+		User user = userRepository.findById(userDto.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 		String password = userDto.getPassword();
 		if (password != null && !password.isBlank()) {

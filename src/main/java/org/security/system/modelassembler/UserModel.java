@@ -1,28 +1,30 @@
 package org.security.system.modelassembler;
 
-import java.util.Set;
-
 import org.security.system.dto.UserDto;
 import org.springframework.hateoas.RepresentationModel;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter @Setter
 public class UserModel extends RepresentationModel<UserModel> {
-	public Long id;
-    public String username;
-    public String email;
-    public String fullName;
-    public String phoneNumber;
-    public String avatarUrl;
-    public boolean enabled;
-    public Set<String> roles;
+	private Long id;
+	private String username;
+	private String email;
+	private String fullName;
+	private String phoneNumber;
+	private String avatarUrl;
+	private boolean enabled;
     
+	public UserModel() {}
+	
     public UserModel(UserDto dto) {
-        this.id = dto.id;
-        this.username = dto.username;
-        this.email = dto.email;
-        this.fullName = dto.fullName;
-        this.phoneNumber = dto.phoneNumber;
-        this.avatarUrl = dto.avatarUrl;
-        this.enabled = dto.enabled;
-        this.roles = dto.roles;
+        this.id = dto.getId();
+        this.username = dto.getUsername();
+        this.email = dto.getEmail();
+        this.fullName = dto.getFullName();
+        this.phoneNumber = dto.getPhoneNumber();
+        this.avatarUrl = dto.getAvatarUrl();
+        this.enabled = dto.getEnabled();
     }
 }
