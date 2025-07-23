@@ -1,10 +1,15 @@
 package org.security.system.model;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.security.system.service.SoftDeletable;
 import org.security.system.service.impl.SoftDeleteListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,8 +29,10 @@ import lombok.Setter;
 @Table(name = "users") // Tránh dùng tên 'user' vì là keyword SQL
 @Getter @Setter
 @EntityListeners({SoftDeleteListener.class})
-public class User extends VersionedEntity implements SoftDeletable {
+public class User extends VersionedEntity implements SoftDeletable, UserDetails {
 	
+	private static final long serialVersionUID = 1L;
+
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -73,4 +80,12 @@ public class User extends VersionedEntity implements SoftDeletable {
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		// Chuyển roles (String) thành SimpleGrantedAuthority
+        return roles.stream()
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+            .collect(Collectors.toSet());
+	}
 }

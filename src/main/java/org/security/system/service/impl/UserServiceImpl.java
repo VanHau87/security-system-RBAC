@@ -7,6 +7,7 @@ import org.security.system.mapper.UserMapper;
 import org.security.system.model.User;
 import org.security.system.repository.UserRepository;
 import org.security.system.service.UserService;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,11 +20,14 @@ public class UserServiceImpl implements UserService {
 	private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final CompromisedPasswordChecker passwordChecker;
     
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, 
+    			PasswordEncoder passwordEncoder, CompromisedPasswordChecker passwordChecker) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.passwordChecker = passwordChecker;
     }
     
 	@Override
@@ -44,9 +48,11 @@ public class UserServiceImpl implements UserService {
 		User user = userMapper.toEntity(userDto);
 		// Chỉ encode nếu là user mới, hoặc password thay đổi
 		String password = userDto.getPassword();
-        if (password != null && !password.isBlank()) {
-            user.setPassword(passwordEncoder.encode(password));
-        }
+		if (password == null || password.isBlank()) {
+	        throw new IllegalArgumentException("Password is required for new user");
+	    }
+		passwordChecker.check(password);
+        user.setPassword(passwordEncoder.encode(password));
 		User savedUser = userRepository.save(user);
 		return userMapper.toDTO(savedUser);
 	}
@@ -57,6 +63,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 		String password = userDto.getPassword();
 		if (password != null && !password.isBlank()) {
+			passwordChecker.check(password);
 	        user.setPassword(passwordEncoder.encode(password));
 	    }
 		

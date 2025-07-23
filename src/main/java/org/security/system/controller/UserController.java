@@ -15,6 +15,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.password.CompromisedPasswordException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,18 +52,27 @@ public class UserController {
         return ResponseEntity.ok(userAssembler.toCollectionModel(users));
     }
     @PostMapping
-    public ResponseEntity<EntityModel<UserModel>> createUser(@Validated(OnCreate.class) @RequestBody UserDto dto) {
-        UserDto savedUser = userService.createUser(dto);
-        //UserModel model = UserModelAssembler.buildModel(savedUser);
-        //return ResponseEntity.ok(ApiResponse.success("Created user successfully", model));
-        return ResponseEntity.ok(userAssembler.toModel(savedUser));
+    public ResponseEntity<?> createUser(@Validated(OnCreate.class) @RequestBody UserDto dto) {
+        try {
+			UserDto savedUser = userService.createUser(dto);
+			return ResponseEntity.ok(userAssembler.toModel(savedUser));
+		} catch (CompromisedPasswordException e) {
+			return ResponseEntity.badRequest().body("Password đã bị lộ, vui lòng chọn mật khẩu khác!");
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
     }
     @PutMapping
-    public ResponseEntity<EntityModel<UserModel>> updateUser(@Validated(OnUpdate.class) @RequestBody UserDto userDto) {
-        UserDto updatedUser = userService.updateUser(userDto);
-        //UserModel model = UserModelAssembler.buildModel(updatedUser);
-		//return ResponseEntity.ok(ApiResponse.success("User updated", model));
-        return ResponseEntity.ok(userAssembler.toModel(updatedUser));
+    public ResponseEntity<?> updateUser(@Validated(OnUpdate.class) @RequestBody UserDto userDto) {
+        try {
+			UserDto updatedUser = userService.updateUser(userDto);
+			return ResponseEntity.ok(userAssembler.toModel(updatedUser));
+		} catch (CompromisedPasswordException e) {
+			return ResponseEntity.badRequest().body("Password đã bị lộ, vui lòng chọn mật khẩu khác!");
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+    	
     }
     @DeleteMapping("/{id}/hard")
     public ResponseEntity<ApiResponse<UserModel>> deleteHard(@PathVariable Long id) {
